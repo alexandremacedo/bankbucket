@@ -21,6 +21,16 @@ function isAccountValid(request, response, next) {
     return next();
 }
 
+function getBalance(statements) {
+    return statements.reduce((total, operation) => {
+        if(operation.type === "creadit") {
+            return total + operation.amount
+        } else {
+            return total - operation.amount
+        }
+    }, 0)
+}
+
 app.post("/account", (request, response) => {
     const {document, name} = request.body;
 
@@ -70,6 +80,41 @@ app.post("/deposit", (request, response) => {
     return response.status(201).send()
 })
 
+app.post("/withdraw", (request, response) => {
+    const { amount } = request.body;
+    const { customer } = request;
 
+    const balance = getBalance(customer.statements);
+
+    if (balance < amount) {
+        return response.status(400).json({message: "Insufficient funds!"})
+    }
+
+    const statementsOperation = {
+        amount,
+        created_at: new Date(),
+        type: "debit"
+    }
+
+    customer.statements.push(statementsOperation);
+
+    return response.status(201).send()
+});
+
+app.get("/statements/date", (request, response) => {
+    const { customer } = request;
+    const {date} = request.query;
+
+    const dateFormat = new Date(date + " 00:00");
+
+    const filteredStatementsByDate = customer.statements.filter((statement) => {
+        statement.created_at.toDateString() 
+        === new Date(dateFormat).toDateString()
+    })
+
+    return response.status(200).json({
+        statements: filteredStatementsByDate
+    });
+});
 
 app.listen(3333);
