@@ -33,16 +33,14 @@ app.post("/account", (request, response) => {
         return response.status(400).json({error: true, message: "Document is already in use!"});
     }
 
-    const customer = {
+    customers.push({
         name,
         document,
         id: uuidv4(),
         statements: []
-    }
+    })
 
-    customers.push(customer)
-
-    return response.status(201).json(customer);
+    return response.status(201).send();
 });
 
 app.use(isAccountValid)
@@ -54,6 +52,23 @@ app.get("/statements", (request, response) => {
         statements: customer.statements
     });
 });
+
+app.post("/deposit", (request, response) => {
+    const { description, amount } = request.body;
+
+    const { customer } = request;
+    
+    const statementOperation = {
+      description,
+      amount,
+      created_at: new Date(),
+      type: "credit"  
+    }
+
+    customer.statements.push(statementOperation)
+
+    return response.status(201).send()
+})
 
 
 
