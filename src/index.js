@@ -117,4 +117,18 @@ app.get("/statements/date", (request, response) => {
     });
 });
 
+app.put("/account", (request, response) => {
+    const {name} = request.body;
+    const { customer }= request;
+    
+    customer.name = name;
+
+    return response.status(200).send();
+})
+
+app.get("/account", (request, response) => {
+    const { customer } = request;
+    return response.status(200).json(customer);
+})
+
 app.listen(3333);
